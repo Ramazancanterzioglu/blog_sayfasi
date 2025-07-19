@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dizi & Film Önerileri - Kişisel Öneri Rehberi</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .content-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .content-poster {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            position: relative;
+        }
+        
+        .content-info {
+            padding: 1.5rem;
+        }
+        
+        .content-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .content-year {
+            color: var(--secondary-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .content-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .rating-stars {
+            color: #ffd700;
+            font-size: 1.2rem;
+        }
+        
+        .content-genre {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .genre-tag {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .content-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+        
+        .my-thoughts {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-left: 4px solid var(--accent-color);
+            padding: 1rem;
+            border-radius: 0 10px 10px 0;
+            font-style: italic;
+            margin-top: 1rem;
+        }
+        
+        .my-thoughts h4 {
+            color: var(--accent-color);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .content-type-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .content-type-badge.movie {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .content-type-badge.series {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+        
+        .filter-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-tab {
+            background: white;
+            border: 2px solid var(--secondary-color);
+            color: var(--secondary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-tab.active,
+        .filter-tab:hover {
+            background: var(--secondary-color);
+            color: white;
+        }
+        
+        .watch-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .status-watched {
+            color: #27ae60;
+        }
+        
+        .status-watching {
+            color: #f39c12;
+        }
+        
+        .status-planned {
+            color: #3498db;
+        }
+        
+        .detail-button {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            width: 100%;
+        }
+        
+        .detail-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 3% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            padding: 1.5rem;
+            border-radius: 20px 20px 0 0;
+            position: relative;
+        }
+        
+        .modal-body {
+            padding: 2rem;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .close-modal:hover {
+            background: rgba(255,255,255,0.3);
+            transform: rotate(90deg);
+        }
+        
+        .modal-poster {
+            width: 100%;
+            max-width: 300px;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            float: left;
+            margin-right: 2rem;
+        }
+        
+        .modal-info {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .info-item i {
+            color: var(--secondary-color);
+            width: 20px;
+        }
+        
+        .detailed-review {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-left: 4px solid var(--accent-color);
+            padding: 1.5rem;
+            border-radius: 0 15px 15px 0;
+            margin-top: 1rem;
+            line-height: 1.6;
+            clear: both;
+        }
+        
+        .cast-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .cast-member {
+            background: var(--secondary-color);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+        }
+        
+        @media (max-width: 768px) {
+            .modal-poster {
+                float: none;
+                margin-right: 0;
+                width: 100%;
+                max-width: 100%;
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="scroll-indicator"></div>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon" id="theme-icon"></i>
+    </button>
+    
+    <div class="floating-elements">
+        <i class="fas fa-film floating-icon" style="font-size: 3rem;"></i>
+        <i class="fas fa-tv floating-icon" style="font-size: 2.5rem;"></i>
+        <i class="fas fa-popcorn floating-icon" style="font-size: 2rem;"></i>
+        <i class="fas fa-video floating-icon" style="font-size: 2.8rem;"></i>
+        <i class="fas fa-play floating-icon" style="font-size: 2.2rem;"></i>
+        <i class="fas fa-star floating-icon" style="font-size: 2.6rem;"></i>
+    </div>
+    
+    <header class="header">
+        <div class="header-content">
+            <h1><i class="fas fa-film"></i> Dizi & Film Önerileri</h1>
+            <p>İzlediğim ve beğendiğim yapımlar hakkında düşüncelerim</p>
+            
+            <!-- Sosyal Medya Linkleri -->
+            <div class="social-links">
+                <a href="https://www.instagram.com/aysegulasya.t?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" class="social-link">
+                    <i class="fab fa-instagram"></i>
+                    <span>Instagram</span>
+                </a>
+                <a href="https://x.com/aysegulasya11?fbclid=PAZXh0bgNhZW0CMTEAAaeodzh0JLngsvWonGYTJrP2OLkA29UnGBnm1JWKtTuOF3QfPhe8QmS7D-klsg_aem_dkcnex2A182SMfL-DCe13w" target="_blank" class="social-link">
+                    <i class="fab fa-twitter"></i>
+                    <span>Twitter</span>
+                </a>
+            </div>
+            
+            <!-- Navigasyon Butonları -->
+            <div class="header-cta">
+                <button class="header-cta-button" onclick="window.location.href='index.html'">
+                    <i class="fas fa-home"></i>
+                    <span>Ana Sayfa</span>
+                </button>
+                <button class="header-cta-button" onclick="window.location.href='gezilecek-yerler.html'">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>Gezilecek Yerler</span>
+                </button>
+            </div>
+            
+            <div class="header-stats">
+                <div class="header-stat">
+                    <span class="number" data-target="15">0</span>
+                    <span class="label">İzlediğim</span>
+                </div>
+                <div class="header-stat">
+                    <span class="number" data-target="8">0</span>
+                    <span class="label">Favori</span>
+                </div>
+                <div class="header-stat">
+                    <span class="number" data-target="120">0</span>
+                    <span class="label">Saat İzledim</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Geri Dönüş Butonu -->
+    <div class="back-button-container">
+        <button class="back-button" onclick="window.location.href='index.html'">
+            <i class="fas fa-arrow-left"></i>
+            <span>Ana Sayfaya Dön</span>
+        </button>
+    </div>
+
+    <div class="container">
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterContent('all')">
+                <i class="fas fa-th"></i> Tümü
+            </button>
+            <button class="filter-tab" onclick="filterContent('movie')">
+                <i class="fas fa-film"></i> Filmler
+            </button>
+            <button class="filter-tab" onclick="filterContent('series')">
+                <i class="fas fa-tv"></i> Diziler
+            </button>
+            <button class="filter-tab" onclick="filterContent('favorite')">
+                <i class="fas fa-heart"></i> Favorilerim
+            </button>
+        </div>
+        
+        <!-- Content Grid -->
+        <div class="content-grid" id="contentGrid">
+            <!-- Film 1: Inception -->
+            <div class="content-card" data-type="movie" data-favorite="true">
+                <div class="content-type-badge movie">Film</div>
+                <img src="https://images.unsplash.com/photo-1489599815245-cfd2c5c61664?w=400&h=500&fit=crop" alt="Inception" class="content-poster">
+                <div class="content-info">
+                    <h3 class="content-title">Inception</h3>
+                    <div class="content-year">
+                        <i class="fas fa-calendar"></i> 2010
+                    </div>
+                    <div class="content-rating">
+                        <span class="rating-stars">★★★★★</span>
+                        <span>(9.5/10)</span>
+                    </div>
+                    <div class="content-genre">
+                        <span class="genre-tag">Aksiyon</span>
+                        <span class="genre-tag">Sci-Fi</span>
+                        <span class="genre-tag">Gerilim</span>
+                    </div>
+                    <div class="watch-status">
+                        <i class="fas fa-check-circle status-watched"></i>
+                        <span>İzlendi</span>
+                    </div>
+                    <p class="content-description">
+                        Christopher Nolan'ın muhteşem yönetmenliğinde, rüyaların içine girip fikir çalma konusunda uzmanlaşmış bir hırsızın hikayesi.
+                    </p>
+                    <div class="my-thoughts">
+                        <h4><i class="fas fa-comment"></i> Düşüncelerim:</h4>
+                        <p>Zihin açıcı bir film! Plot twistleri ve karmaşık hikaye anlatımı ile beni büyüledi...</p>
+                    </div>
+                    <button class="detail-button" onclick="openContentModal('inception')">
+                        <i class="fas fa-info-circle"></i> Detay Gör
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dizi 1: Breaking Bad -->
+            <div class="content-card" data-type="series" data-favorite="true">
+                <div class="content-type-badge series">Dizi</div>
+                <img src="https://images.unsplash.com/photo-1616530940355-351fabd9524b?w=400&h=500&fit=crop" alt="Breaking Bad" class="content-poster">
+                <div class="content-info">
+                    <h3 class="content-title">Breaking Bad</h3>
+                    <div class="content-year">
+                        <i class="fas fa-calendar"></i> 2008-2013
+                    </div>
+                    <div class="content-rating">
+                        <span class="rating-stars">★★★★★</span>
+                        <span>(10/10)</span>
+                    </div>
+                    <div class="content-genre">
+                        <span class="genre-tag">Drama</span>
+                        <span class="genre-tag">Suç</span>
+                        <span class="genre-tag">Gerilim</span>
+                    </div>
+                    <div class="watch-status">
+                        <i class="fas fa-check-circle status-watched"></i>
+                        <span>İzlendi</span>
+                    </div>
+                    <p class="content-description">
+                        Kimya öğretmeni Walter White'ın kanser olduğunu öğrendikten sonra ailesine para bırakmak için uyuşturucu üretmeye başlaması.
+                    </p>
+                    <div class="my-thoughts">
+                        <h4><i class="fas fa-comment"></i> Düşüncelerim:</h4>
+                        <p>Gelmiş geçmiş en iyi dizilerden biri! Karakter gelişimi mükemmel...</p>
+                    </div>
+                    <button class="detail-button" onclick="openContentModal('breakingbad')">
+                        <i class="fas fa-info-circle"></i> Detay Gör
+                    </button>
+                </div>
+            </div>
+
+            <!-- Film 2: Parasite -->
+            <div class="content-card" data-type="movie" data-favorite="true">
+                <div class="content-type-badge movie">Film</div>
+                <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=500&fit=crop" alt="Parasite" class="content-poster">
+                <div class="content-info">
+                    <h3 class="content-title">Parasite (Gisaengchung)</h3>
+                    <div class="content-year">
+                        <i class="fas fa-calendar"></i> 2019
+                    </div>
+                    <div class="content-rating">
+                        <span class="rating-stars">★★★★★</span>
+                        <span>(9.8/10)</span>
+                    </div>
+                    <div class="content-genre">
+                        <span class="genre-tag">Drama</span>
+                        <span class="genre-tag">Gerilim</span>
+                        <span class="genre-tag">Komedi</span>
+                    </div>
+                    <div class="watch-status">
+                        <i class="fas fa-check-circle status-watched"></i>
+                        <span>İzlendi</span>
+                    </div>
+                    <p class="content-description">
+                        Yoksul bir ailenin zengin bir aileye sızarak hayatlarını değiştirme çabası ve bunun beklenmedik sonuçları.
+                    </p>
+                    <div class="my-thoughts">
+                        <h4><i class="fas fa-comment"></i> Düşüncelerim:</h4>
+                        <p>Bong Joon-ho'nun dehası! Sosyal sınıf farklılıklarını bu kadar güzel işleyen...</p>
+                    </div>
+                    <button class="detail-button" onclick="openContentModal('parasite')">
+                        <i class="fas fa-info-circle"></i> Detay Gör
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dizi 2: The Crown -->
+            <div class="content-card" data-type="series" data-favorite="false">
+                <div class="content-type-badge series">Dizi</div>
+                <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=500&fit=crop" alt="The Crown" class="content-poster">
+                <div class="content-info">
+                    <h3 class="content-title">The Crown</h3>
+                    <div class="content-year">
+                        <i class="fas fa-calendar"></i> 2016-2023
+                    </div>
+                    <div class="content-rating">
+                        <span class="rating-stars">★★★★☆</span>
+                        <span>(8.5/10)</span>
+                    </div>
+                    <div class="content-genre">
+                        <span class="genre-tag">Tarihi</span>
+                        <span class="genre-tag">Drama</span>
+                        <span class="genre-tag">Biyografi</span>
+                    </div>
+                    <div class="watch-status">
+                        <i class="fas fa-play-circle status-watching"></i>
+                        <span>İzleniyor</span>
+                    </div>
+                    <p class="content-description">
+                        Kraliçe II. Elizabeth'in hayatı ve İngiliz Kraliyet ailesinin iç dünyası hakkında etkileyici bir drama.
+                    </p>
+                    <div class="my-thoughts">
+                        <h4><i class="fas fa-comment"></i> Düşüncelerim:</h4>
+                        <p>Görsel olarak çok başarılı! Kostümler ve set tasarımı harika...</p>
+                    </div>
+                    <button class="detail-button" onclick="openContentModal('thecrown')">
+                        <i class="fas fa-info-circle"></i> Detay Gör
+                    </button>
+                </div>
+            </div>
+
+            <!-- Film 3: Dune -->
+            <div class="content-card" data-type="movie" data-favorite="false">
+                <div class="content-type-badge movie">Film</div>
+                <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=500&fit=crop" alt="Dune" class="content-poster">
+                <div class="content-info">
+                    <h3 class="content-title">Dune</h3>
+                    <div class="content-year">
+                        <i class="fas fa-calendar"></i> 2021
+                    </div>
+                    <div class="content-rating">
+                        <span class="rating-stars">★★★★☆</span>
+                        <span>(8.2/10)</span>
+                    </div>
+                    <div class="content-genre">
+                        <span class="genre-tag">Sci-Fi</span>
+                        <span class="genre-tag">Aksiyon</span>
+                        <span class="genre-tag">Macera</span>
+                    </div>
+                    <div class="watch-status">
+                        <i class="fas fa-check-circle status-watched"></i>
+                        <span>İzlendi</span>
+                    </div>
+                    <p class="content-description">
+                        Frank Herbert'in ünlü romanından uyarlanan, uzak gelecekte geçen destansı bilim kurgu hikayesi.
+                    </p>
+                    <div class="my-thoughts">
+                        <h4><i class="fas fa-comment"></i> Düşüncelerim:</h4>
+                        <p>Görsel anlamda muhteşem! Denis Villeneuve'ün yönetmenliği etkileyici...</p>
+                    </div>
+                    <button class="detail-button" onclick="openContentModal('dune')">
+                        <i class="fas fa-info-circle"></i> Detay Gör
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dizi 3: Squid Game -->
+            <div class="content-card" data-type="series" data-favorite="true">
+                <div class="content-type-badge series">Dizi</div>
+                <img src="https://images.unsplash.com/photo-1578068450433-145dc15b5c6d?w=400&h=500&fit=crop" alt="Squid Game" class="content-poster">
+                <div class="content-info">
+                    <h3 class="content-title">Squid Game</h3>
+                    <div class="content-year">
+                        <i class="fas fa-calendar"></i> 2021
+                    </div>
+                    <div class="content-rating">
+                        <span class="rating-stars">★★★★★</span>
+                        <span>(9.0/10)</span>
+                    </div>
+                    <div class="content-genre">
+                        <span class="genre-tag">Gerilim</span>
+                        <span class="genre-tag">Drama</span>
+                        <span class="genre-tag">Aksiyon</span>
+                    </div>
+                    <div class="watch-status">
+                        <i class="fas fa-check-circle status-watched"></i>
+                        <span>İzlendi</span>
+                    </div>
+                    <p class="content-description">
+                        Borç içinde yüzen insanların hayatta kalma oyunlarına katılarak büyük ödülü kazanmaya çalıştığı Kore dizisi.
+                    </p>
+                    <div class="my-thoughts">
+                        <h4><i class="fas fa-comment"></i> Düşüncelerim:</h4>
+                        <p>Çok etkileyici! Sosyal eleştiri açısından da güçlü...</p>
+                    </div>
+                    <button class="detail-button" onclick="openContentModal('squidgame')">
+                        <i class="fas fa-info-circle"></i> Detay Gör
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- CTA Section -->
+        <div class="cta-section">
+            <h2>Daha Fazla Öneri Gelecek</h2>
+            <p>Film ve dizi dünyasından beğendiğim yapımları keşfedin. Yeni izlediklerimi ve düşüncelerimi düzenli olarak paylaşıyorum.</p>
+            <div class="cta-buttons">
+                <button class="cta-button" onclick="window.location.href='index.html'">
+                    <i class="fas fa-home"></i> Ana Sayfa
+                </button>
+                <button class="cta-button" onclick="window.location.href='gezilecek-yerler.html'">
+                    <i class="fas fa-map-marked-alt"></i> Gezilecek Yerler
+                </button>
+                <button class="cta-button" onclick="showAlert('watchlist')">
+                    <i class="fas fa-list"></i> İzlenecek Liste
+                </button>
+                <button class="cta-button" onclick="showAlert('rating')">
+                    <i class="fas fa-star"></i> Puanlama Sistemi
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Content Detail Modal -->
+    <div id="contentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">İçerik Detayları</h2>
+                <button class="close-modal" onclick="closeContentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img id="modalPoster" src="" alt="" class="modal-poster">
+                <div class="modal-info">
+                    <div class="info-item">
+                        <i class="fas fa-calendar"></i>
+                        <span id="modalYear"></span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-star"></i>
+                        <span id="modalRating"></span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-tags"></i>
+                        <span id="modalGenres"></span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-play-circle"></i>
+                        <span id="modalStatus"></span>
+                    </div>
+                </div>
+                <div id="modalCast"></div>
+                <p id="modalDescription"></p>
+                <div class="detailed-review">
+                    <h4><i class="fas fa-comment"></i> Detaylı İnceleme:</h4>
+                    <p id="modalReview"></p>
+                </div>
+                <div id="modalExtras"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+    <script>
+        // Content data with detailed information
+        const contentData = {
+            inception: {
+                title: "Inception",
+                year: "2010",
+                rating: "★★★★★ (9.5/10)",
+                genres: "Aksiyon, Sci-Fi, Gerilim",
+                status: "İzlendi",
+                poster: "https://images.unsplash.com/photo-1489599815245-cfd2c5c61664?w=400&h=600&fit=crop",
+                description: "Christopher Nolan'ın muhteşem yönetmenliğinde, rüyaların içine girip fikir çalma konusunda uzmanlaşmış bir hırsızın hikayesi. Dom Cobb, bu tehlikeli sanatın en iyisidir.",
+                cast: ["Leonardo DiCaprio", "Marion Cotillard", "Tom Hardy", "Elliot Page", "Michael Caine"],
+                review: `Inception gerçekten zihin açıcı bir film! Christopher Nolan'ın karmaşık hikaye anlatımı ve plot twistleri beni büyüledi. Filmin en güçlü yanı rüya katmanları konsepti - her seviyede farklı zaman akışının olması ve bunun hikayeye etkisi inanılmaz.
+
+Leonardo DiCaprio'nun performansı mükemmel. Karakterin duygusal yolculuğu ve Mal ile olan ilişkisi filmin kalbini oluşturuyor. Görsel efektler çağının ötesinde, özellikle Paris'teki katlanma sahnesi ve koridorda dönen kavga sekansı.
+
+Hans Zimmer'in müziği de filmin atmosferini yaratmada çok etkili. Her izlediğimde yeni detaylar keşfediyorum. Kesinlikle tekrar tekrar izlenesi bir yapım.`,
+                extras: `
+                    <div style="margin-top: 1.5rem;">
+                        <h4 style="color: var(--primary-color); margin-bottom: 1rem;"><i class="fas fa-award"></i> Ödüller:</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-trophy" style="color: gold; margin-right: 0.5rem;"></i> 4 Oscar Ödülü</li>
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-star" style="color: gold; margin-right: 0.5rem;"></i> IMDB Top 250</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-medal" style="color: gold; margin-right: 0.5rem;"></i> Çok sayıda eleştiri ödülü</li>
+                        </ul>
+                    </div>
+                `
+            },
+            breakingbad: {
+                title: "Breaking Bad",
+                year: "2008-2013",
+                rating: "★★★★★ (10/10)",
+                genres: "Drama, Suç, Gerilim",
+                status: "İzlendi",
+                poster: "https://images.unsplash.com/photo-1616530940355-351fabd9524b?w=400&h=600&fit=crop",
+                description: "Kimya öğretmeni Walter White'ın kanser olduğunu öğrendikten sonra ailesine para bırakmak için uyuşturucu üretmeye başlaması.",
+                cast: ["Bryan Cranston", "Aaron Paul", "Anna Gunn", "Dean Norris", "Betsy Brandt"],
+                review: `Breaking Bad gelmiş geçmiş en iyi dizilerden biri! Walter White'ın normal bir öğretmenden suç imparatoruna dönüşümü mükemmel bir karakter gelişimi örneği. Bryan Cranston'ın performansı inanılmaz - her bölümde karakterin derinleşmesi ve karmaşıklaşması izleyiciyi büyülüyor.
+
+Dizi boyunca gerilim hiç düşmüyor. Her bölümde nefesini tutuyorsun. Jesse Pinkman karakteri de çok iyi geliştirilmiş. Aaron Paul'un oyunculuğu fevkalade. Walt ve Jesse'nin ilişkisi dizinin kalbini oluşturuyor.
+
+Çekim teknikleri, renk paleti ve müzik seçimleri de çok başarılı. Vince Gilligan'ın yaratıcılığı her detayda görülüyor. Herkese kesinlikle tavsiye ediyorum!`,
+                extras: `
+                    <div style="margin-top: 1.5rem;">
+                        <h4 style="color: var(--primary-color); margin-bottom: 1rem;"><i class="fas fa-tv"></i> Dizi Bilgileri:</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-list" style="color: green; margin-right: 0.5rem;"></i> 5 Sezon, 62 Bölüm</li>
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-globe" style="color: green; margin-right: 0.5rem;"></i> Dünya çapında kült</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-film" style="color: green; margin-right: 0.5rem;"></i> Better Call Saul spin-off</li>
+                        </ul>
+                    </div>
+                `
+            },
+            parasite: {
+                title: "Parasite (Gisaengchung)",
+                year: "2019",
+                rating: "★★★★★ (9.8/10)",
+                genres: "Drama, Gerilim, Komedi",
+                status: "İzlendi",
+                poster: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=600&fit=crop",
+                description: "Yoksul bir ailenin zengin bir aileye sızarak hayatlarını değiştirme çabası ve bunun beklenmedik sonuçları.",
+                cast: ["Song Kang-ho", "Lee Sun-kyun", "Cho Yeo-jeong", "Choi Woo-shik", "Park So-dam"],
+                review: `Parasite, Bong Joon-ho'nun dehası! Sosyal sınıf farklılıklarını bu kadar güzel ve ironik bir şekilde işleyen başka bir film görmedim. Filmin her sahnesi mükemmel düşünülmüş.
+
+Hikaye basit görünüyor ama aslında çok derin katmanları var. Zengin ve fakir aile arasındaki dinamikler, toplumsal eleştiri harika işlenmiş. Görsel anlatım da çok güçlü - ev tasarımları bile karakterlerin durumunu yansıtıyor.
+
+Oyuncular harika performans sergilemiş. Song Kang-ho özellikle muhteşem. Oscar'ı kesinlikle hak eden bir yapım. Altyazılı izlemekten çekinmeyin, kesinlikle değer!`,
+                extras: `
+                    <div style="margin-top: 1.5rem;">
+                        <h4 style="color: var(--primary-color); margin-bottom: 1rem;"><i class="fas fa-globe-asia"></i> Kore Sineması:</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-award" style="color: gold; margin-right: 0.5rem;"></i> İlk Kore Oscar ödülü</li>
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-star" style="color: gold; margin-right: 0.5rem;"></i> Cannes Palme d'Or</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-fire" style="color: gold; margin-right: 0.5rem;"></i> Dünya çapında fenomen</li>
+                        </ul>
+                    </div>
+                `
+            },
+            thecrown: {
+                title: "The Crown",
+                year: "2016-2023",
+                rating: "★★★★☆ (8.5/10)",
+                genres: "Tarihi, Drama, Biyografi",
+                status: "İzleniyor",
+                poster: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=600&fit=crop",
+                description: "Kraliçe II. Elizabeth'in hayatı ve İngiliz Kraliyet ailesinin iç dünyası hakkında etkileyici bir drama.",
+                cast: ["Claire Foy", "Olivia Colman", "Imelda Staunton", "Matt Smith", "Tobias Menzies"],
+                review: `The Crown görsel olarak çok başarılı bir dizi! Kostümler, set tasarımı ve çekim kalitesi Netflix'in en iyi prodüksiyonlarından biri. Her dönem için farklı oyuncular seçimi çok akıllıca.
+
+Tarihi olayların dramatize edilmesi çok başarılı. Kraliyet ailesinin kişisel yaşamları ile siyasi gelişmelerin harmanlama şekli etkileyici. Claire Foy'un genç Elizabeth performansı özellikle takdire şayan.
+
+Bazen biraz yavaş ilerliyor ama genel olarak kaliteli bir yapım. Tarih severler ve İngiliz kültürüne ilgi duyanlar için mükemmel. Her sezon farklı bir dönem işleniyor.`,
+                extras: `
+                    <div style="margin-top: 1.5rem;">
+                        <h4 style="color: var(--primary-color); margin-bottom: 1rem;"><i class="fas fa-crown"></i> Kraliyet Tarihi:</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-history" style="color: purple; margin-right: 0.5rem;"></i> 1940'lardan 2000'lere</li>
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-users" style="color: purple; margin-right: 0.5rem;"></i> 3 farklı oyuncu kadrosu</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-award" style="color: purple; margin-right: 0.5rem;"></i> Çok sayıda Emmy ödülü</li>
+                        </ul>
+                    </div>
+                `
+            },
+            dune: {
+                title: "Dune",
+                year: "2021",
+                rating: "★★★★☆ (8.2/10)",
+                genres: "Sci-Fi, Aksiyon, Macera",
+                status: "İzlendi",
+                poster: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=600&fit=crop",
+                description: "Frank Herbert'in ünlü romanından uyarlanan, uzak gelecekte geçen destansı bilim kurgu hikayesi.",
+                cast: ["Timothée Chalamet", "Rebecca Ferguson", "Oscar Isaac", "Josh Brolin", "Zendaya"],
+                review: `Dune görsel anlamda muhteşem bir film! Denis Villeneuve'ün yönetmenliği çok etkileyici. Çöl manzaraları, devasa uzay gemileri ve kostüm tasarımları sinematik açıdan mükemmel.
+
+Müzikler de harika - Hans Zimmer yine kendini aştı. Hikaye biraz karmaşık gelebilir kitabı okumayanlara ama genel olarak takip etmek zor değil. Timothée Chalamet'in Paul Atreides performansı güçlü.
+
+İkinci filmi merakla bekliyorum çünkü bu sadece başlangıç. IMAX'te izlemek kesinlikle tavsiye ediliyor. Bilim kurgu severlerin kaçırmaması gereken bir yapım.`,
+                extras: `
+                    <div style="margin-top: 1.5rem;">
+                        <h4 style="color: var(--primary-color); margin-bottom: 1rem;"><i class="fas fa-rocket"></i> Sci-Fi Dünyası:</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-book" style="color: blue; margin-right: 0.5rem;"></i> Frank Herbert'in klasik romanı</li>
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-film" style="color: blue; margin-right: 0.5rem;"></i> İki parçalık uyarlama</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-eye" style="color: blue; margin-right: 0.5rem;"></i> IMAX deneyimi şart</li>
+                        </ul>
+                    </div>
+                `
+            },
+            squidgame: {
+                title: "Squid Game",
+                year: "2021",
+                rating: "★★★★★ (9.0/10)",
+                genres: "Gerilim, Drama, Aksiyon",
+                status: "İzlendi",
+                poster: "https://images.unsplash.com/photo-1578068450433-145dc15b5c6d?w=400&h=600&fit=crop",
+                description: "Borç içinde yüzen insanların hayatta kalma oyunlarına katılarak büyük ödülü kazanmaya çalıştığı Kore dizisi.",
+                cast: ["Lee Jung-jae", "Park Hae-soo", "Wi Ha-joon", "Jung Ho-yeon", "O Yeong-su"],
+                review: `Squid Game çok etkileyici bir dizi! Çocukluk oyunlarının ölümcül hale getirilmesi konsepti dehşet verici ama aynı zamanda büyüleyici. Sosyal eleştiri açısından da çok güçlü bir yapım.
+
+Oyuncular harika performans sergilemiş, özellikle Lee Jung-jae'nin Gi-hun karakteri çok iyi. Karakterler arasındaki dinamikler ve rekabet hissi diziyi izlerken gerçekten gergin olmanızı sağlıyor.
+
+Görsel tasarım da çok başarılı - renkli oyun alanları ile sert gerçeklik arasındaki kontrast etkileyici. Kore dizilerinin kalitesini bir kez daha gösterdi. İkinci sezon için sabırsızlanıyorum!`,
+                extras: `
+                    <div style="margin-top: 1.5rem;">
+                        <h4 style="color: var(--primary-color); margin-bottom: 1rem;"><i class="fas fa-gamepad"></i> Oyunlar:</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-child" style="color: red; margin-right: 0.5rem;"></i> Kırmızı Işık Yeşil Işık</li>
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-cookie-bite" style="color: red; margin-right: 0.5rem;"></i> Dalgona Şekeri</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-bridge" style="color: red; margin-right: 0.5rem;"></i> Cam Köprü</li>
+                        </ul>
+                    </div>
+                `
+            }
+        };
+        
+        function filterContent(type) {
+            const cards = document.querySelectorAll('.content-card');
+            const tabs = document.querySelectorAll('.filter-tab');
+            
+            // Remove active class from all tabs
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            cards.forEach(card => {
+                const cardType = card.getAttribute('data-type');
+                const isFavorite = card.getAttribute('data-favorite') === 'true';
+                
+                if (type === 'all') {
+                    card.style.display = 'block';
+                } else if (type === 'favorite') {
+                    card.style.display = isFavorite ? 'block' : 'none';
+                } else {
+                    card.style.display = cardType === type ? 'block' : 'none';
+                }
+            });
+            
+            // Smooth animation
+            setTimeout(() => {
+                const visibleCards = document.querySelectorAll('.content-card[style*="block"]');
+                visibleCards.forEach((card, index) => {
+                    card.style.animation = `fadeInUp 0.6s ease ${index * 0.1}s forwards`;
+                });
+            }, 100);
+        }
+        
+        function openContentModal(contentId) {
+            const content = contentData[contentId];
+            if (!content) return;
+            
+            document.getElementById('modalTitle').textContent = content.title;
+            document.getElementById('modalYear').textContent = content.year;
+            document.getElementById('modalRating').textContent = content.rating;
+            document.getElementById('modalGenres').textContent = content.genres;
+            document.getElementById('modalStatus').textContent = content.status;
+            document.getElementById('modalPoster').src = content.poster;
+            document.getElementById('modalPoster').alt = content.title;
+            document.getElementById('modalDescription').textContent = content.description;
+            document.getElementById('modalReview').textContent = content.review;
+            document.getElementById('modalExtras').innerHTML = content.extras;
+            
+            // Cast list
+            const castHtml = `
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: var(--primary-color); margin-bottom: 1rem;"><i class="fas fa-users"></i> Oyuncular:</h4>
+                    <div class="cast-list">
+                        ${content.cast.map(actor => `<span class="cast-member">${actor}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+            document.getElementById('modalCast').innerHTML = castHtml;
+            
+            document.getElementById('contentModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeContentModal() {
+            document.getElementById('contentModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('contentModal');
+            if (event.target === modal) {
+                closeContentModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeContentModal();
+            }
+        });
+        
+        // Add hover effects to cards
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.content-card');
+            
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-10px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

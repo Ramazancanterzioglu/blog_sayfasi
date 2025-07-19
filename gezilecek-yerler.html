@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gezilecek Yerler - Kişisel Seyahat Rehberi</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .travel-form {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+        }
+        
+        .photo-upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .photo-upload-area:hover {
+            border-color: var(--secondary-color);
+            background: #f0f8ff;
+        }
+        
+        .photo-upload-area.dragover {
+            border-color: var(--accent-color);
+            background: #fff5f5;
+        }
+        
+        .rating-stars {
+            display: flex;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+        }
+        
+        .rating-stars .star {
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        
+        .rating-stars .star.active,
+        .rating-stars .star:hover {
+            color: #ffd700;
+        }
+        
+        .place-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .place-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .place-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+        
+        .place-content {
+            padding: 1.5rem;
+        }
+        
+        .place-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .place-rating .stars {
+            color: #ffd700;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .places-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .detail-button {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            width: 100%;
+        }
+        
+        .detail-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            padding: 1.5rem;
+            border-radius: 20px 20px 0 0;
+            position: relative;
+        }
+        
+        .modal-body {
+            padding: 2rem;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .close-modal:hover {
+            background: rgba(255,255,255,0.3);
+            transform: rotate(90deg);
+        }
+        
+        .modal-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-info {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .info-item i {
+            color: var(--secondary-color);
+            width: 20px;
+        }
+        
+        .detailed-thoughts {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-left: 4px solid var(--accent-color);
+            padding: 1.5rem;
+            border-radius: 0 15px 15px 0;
+            margin-top: 1rem;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="scroll-indicator"></div>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon" id="theme-icon"></i>
+    </button>
+    
+    <div class="floating-elements">
+        <i class="fas fa-map-marker-alt floating-icon" style="font-size: 3rem;"></i>
+        <i class="fas fa-camera floating-icon" style="font-size: 2.5rem;"></i>
+        <i class="fas fa-globe floating-icon" style="font-size: 2rem;"></i>
+        <i class="fas fa-compass floating-icon" style="font-size: 2.8rem;"></i>
+        <i class="fas fa-mountain floating-icon" style="font-size: 2.2rem;"></i>
+        <i class="fas fa-plane floating-icon" style="font-size: 2.6rem;"></i>
+    </div>
+    
+    <header class="header">
+        <div class="header-content">
+            <h1><i class="fas fa-map-marked-alt"></i> Gezilecek Yerler</h1>
+            <p>Keşfettiğim yerler, deneyimlerim ve önerilerim</p>
+            
+            <!-- Sosyal Medya Linkleri -->
+            <div class="social-links">
+                <a href="https://www.instagram.com/aysegulasya.t?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" class="social-link">
+                    <i class="fab fa-instagram"></i>
+                    <span>Instagram</span>
+                </a>
+                <a href="https://x.com/aysegulasya11?fbclid=PAZXh0bgNhZW0CMTEAAaeodzh0JLngsvWonGYTJrP2OLkA29UnGBnm1JWKtTuOF3QfPhe8QmS7D-klsg_aem_dkcnex2A182SMfL-DCe13w" target="_blank" class="social-link">
+                    <i class="fab fa-twitter"></i>
+                    <span>Twitter</span>
+                </a>
+            </div>
+            
+            <!-- Navigasyon Butonları -->
+            <div class="header-cta">
+                <button class="header-cta-button" onclick="window.location.href='index.html'">
+                    <i class="fas fa-home"></i>
+                    <span>Ana Sayfa</span>
+                </button>
+                <button class="header-cta-button" onclick="window.location.href='dizi-film-onerileri.html'">
+                    <i class="fas fa-film"></i>
+                    <span>Dizi & Film</span>
+                </button>
+            </div>
+            
+            <div class="header-stats">
+                <div class="header-stat">
+                    <span class="number" data-target="12">0</span>
+                    <span class="label">Gezdiğim Yer</span>
+                </div>
+                <div class="header-stat">
+                    <span class="number" data-target="5">0</span>
+                    <span class="label">Şehir</span>
+                </div>
+                <div class="header-stat">
+                    <span class="number" data-target="25">0</span>
+                    <span class="label">Fotoğraf</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Geri Dönüş Butonu -->
+    <div class="back-button-container">
+        <button class="back-button" onclick="window.location.href='index.html'">
+            <i class="fas fa-arrow-left"></i>
+            <span>Ana Sayfaya Dön</span>
+        </button>
+    </div>
+
+    <div class="container">
+        <!-- Gezilen Yerler Listesi -->
+        <div class="category-section sirket-category">
+            <div class="category-header">
+                <h2><i class="fas fa-map-marked"></i> Gezdiğim Yerler</h2>
+                <p>Keşfettiğim güzel yerler ve deneyimlerim</p>
+            </div>
+            
+            <div class="places-grid" id="placesGrid">
+                <!-- Örnek yerler -->
+                <div class="place-card">
+                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=250&fit=crop" alt="Kapadokya" class="place-image">
+                    <div class="place-content">
+                        <h3>Kapadokya</h3>
+                        <p class="place-location"><i class="fas fa-map-marker-alt"></i> Nevşehir, Türkiye</p>
+                        <div class="place-rating">
+                            <span class="stars">★★★★★</span>
+                            <span>(5/5)</span>
+                        </div>
+                        <p class="place-thoughts">
+                            Hayatımda gördüğüm en büyüleyici manzaralardan biri! Sıcak hava balonu turu muhteşemdi...
+                        </p>
+                        <p class="visit-date"><i class="fas fa-calendar"></i> 15 Ağustos 2023</p>
+                        <button class="detail-button" onclick="openPlaceModal('kapadokya')">
+                            <i class="fas fa-info-circle"></i> Detay Gör
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="place-card">
+                    <img src="https://images.unsplash.com/photo-1539650116574-75c0c6d0e50e?w=400&h=250&fit=crop" alt="Santorini" class="place-image">
+                    <div class="place-content">
+                        <h3>Santorini</h3>
+                        <p class="place-location"><i class="fas fa-map-marker-alt"></i> Yunanistan</p>
+                        <div class="place-rating">
+                            <span class="stars">★★★★☆</span>
+                            <span>(4/5)</span>
+                        </div>
+                        <p class="place-thoughts">
+                            Gün batımı manzarası efsane! Beyaz evler ve mavi kubbelerin kombinasyonu harika...
+                        </p>
+                        <p class="visit-date"><i class="fas fa-calendar"></i> 3 Haziran 2023</p>
+                        <button class="detail-button" onclick="openPlaceModal('santorini')">
+                            <i class="fas fa-info-circle"></i> Detay Gör
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="place-card">
+                    <img src="https://images.unsplash.com/photo-1541963463532-d68292c34d19?w=400&h=250&fit=crop" alt="Bali" class="place-image">
+                    <div class="place-content">
+                        <h3>Ubud, Bali</h3>
+                        <p class="place-location"><i class="fas fa-map-marker-alt"></i> Endonezya</p>
+                        <div class="place-rating">
+                            <span class="stars">★★★★★</span>
+                            <span>(5/5)</span>
+                        </div>
+                        <p class="place-thoughts">
+                            Çeltik tarlaları ve doğal güzellik mükemmel! Yoga yapmak ve spa deneyimi çok rahatlatıcıydı...
+                        </p>
+                        <p class="visit-date"><i class="fas fa-calendar"></i> 12 Nisan 2023</p>
+                        <button class="detail-button" onclick="openPlaceModal('bali')">
+                            <i class="fas fa-info-circle"></i> Detay Gör
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- CTA Section -->
+        <div class="cta-section">
+            <h2>Daha Fazla Keşfet</h2>
+            <p>Seyahat deneyimlerinizi paylaşın ve yeni yerler keşfedin. Unutulmaz anılarınızı fotoğraflarınızla birlikte kaydedin.</p>
+            <div class="cta-buttons">
+                <button class="cta-button" onclick="window.location.href='index.html'">
+                    <i class="fas fa-home"></i> Ana Sayfa
+                </button>
+                <button class="cta-button" onclick="window.location.href='dizi-film-onerileri.html'">
+                    <i class="fas fa-film"></i> Dizi & Film Önerileri
+                </button>
+                <button class="cta-button" onclick="showAlert('map')">
+                    <i class="fas fa-map"></i> Harita Görünümü
+                </button>
+                <button class="cta-button" onclick="showAlert('gallery')">
+                    <i class="fas fa-images"></i> Fotoğraf Galerisi
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Place Detail Modal -->
+    <div id="placeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Yer Detayları</h2>
+                <button class="close-modal" onclick="closePlaceModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img id="modalImage" src="" alt="" class="modal-image">
+                <div class="modal-info">
+                    <div class="info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span id="modalLocation"></span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-star"></i>
+                        <span id="modalRating"></span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-calendar"></i>
+                        <span id="modalDate"></span>
+                    </div>
+                </div>
+                <div class="detailed-thoughts">
+                    <h4><i class="fas fa-comment"></i> Detaylı Düşüncelerim:</h4>
+                    <p id="modalThoughts"></p>
+                </div>
+                <div id="modalExtras"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+    <script>
+        // Place data with detailed information
+        const placeData = {
+            kapadokya: {
+                title: "Kapadokya",
+                location: "Nevşehir, Türkiye",
+                rating: "★★★★★ (5/5)",
+                date: "15 Ağustos 2023",
+                image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop",
+                thoughts: `Kapadokya gerçekten büyüleyici bir yer! Sıcak hava balonu turu ile gün doğumunu izlemek hayatımın en unutulmaz anılarından biri oldu. Peri bacaları arasında yürümek, tarih boyunca insanların bu kayalara oyduğu evleri görmek inanılmazdı.
+                
+                Göreme Açık Hava Müzesi'ndeki freskler muhteşemdi. Derinkuyu Underground Şehri de çok etkileyici - 8 kat derinliğinde ve binlerce kişinin yaşayabildiği bir yeraltı şehri! 
+                
+                Yerel halk çok sıcakkanlı ve yardımsever. Avanos'ta çömlek yapımını izlemek ve kendim deneyimlemek de çok eğlenceliydi. Kesinlikle tekrar gitmek istiyorum, bu sefer belki at turu da yaparım.`,
+                extras: `
+                    <div style="margin-top: 1.5rem;">
+                        <h4 style="color: var(--primary-color); margin-bottom: 1rem;"><i class="fas fa-lightbulb"></i> Tavsiyelerim:</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-check" style="color: green; margin-right: 0.5rem;"></i> Sıcak hava balonu turu mutlaka yapın</li>
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-check" style="color: green; margin-right: 0.5rem;"></i> En az 3 gün kalın</li>
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-check" style="color: green; margin-right: 0.5rem;"></i> Underground şehirleri kaçırmayın</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-check" style="color: green; margin-right: 0.5rem;"></i> Mağara otelde kalın</li>
+                        </ul>
+                    </div>
+                `
+            },
+            santorini: {
+                title: "Santorini",
+                location: "Yunanistan",
+                rating: "★★★★☆ (4/5)",
+                date: "3 Haziran 2023",
+                image: "https://images.unsplash.com/photo-1539650116574-75c0c6d0e50e?w=600&h=400&fit=crop",
+                thoughts: `Santorini'nin gün batımı manzarası gerçekten dünyaca ünlü olmasını hak ediyor! Oia'da izlediğimiz gün batımı muhteşemdi. Beyaz evler ve mavi kubbelerin kombinasyonu sosyal medyada gördüğümüz kadar güzel.
+                
+                Fira'daki yürüyüş keyifliydi, ancak oldukça kalabalıktı. Red Beach ve Kamari Beach'te güzel vakit geçirdik. Yunan mutfağını da sevdim, özellikle moussaka ve fresh balık!
+                
+                Tek eksi tarafı biraz pahalı olması ve yaz aylarında çok kalabalık olması. Ama fotoğraf çekmek için gerçekten mükemmel bir yer. Wine tasting turları da güzeldi.`,
+                extras: `
+                    <div style="margin-top: 1.5rem;">
+                        <h4 style="color: var(--primary-color); margin-bottom: 1rem;"><i class="fas fa-star"></i> En Sevdiğim Yerler:</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-heart" style="color: red; margin-right: 0.5rem;"></i> Oia Sunset Point</li>
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-heart" style="color: red; margin-right: 0.5rem;"></i> Red Beach</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-heart" style="color: red; margin-right: 0.5rem;"></i> Santo Wines Winery</li>
+                        </ul>
+                    </div>
+                `
+            },
+            bali: {
+                title: "Ubud, Bali",
+                location: "Endonezya",
+                rating: "★★★★★ (5/5)",
+                date: "12 Nisan 2023",
+                image: "https://images.unsplash.com/photo-1541963463532-d68292c34d19?w=600&h=400&fit=crop",
+                thoughts: `Bali'nin Ubud bölgesi ruhani açıdan çok rahatlatıcı bir yerdi! Çeltik tarlaları arasında yürümek, yoga seansları ve spa deneyimleri gerçekten huzur vericiydi. Monkey Forest Sanctuary'de maymunlarla vakit geçirmek eğlenceliydi.
+                
+                Yerel halk inanılmaz derecede misafirperver ve yardımsever. Tegallalang Rice Terraces'ta çektiğim fotoğraflar harika çıktı. Bali mutfağını da çok sevdim, özellikle nasi goreng ve gado-gado!
+                
+                Ubud Market'te alışveriş yapmak keyifliydi. El yapımı hediyelik eşyalar ve sanat eserleri çok güzeldi. Huzur arayan herkesin mutlaka görmesi gereken bir yer. Digital detox için mükemmel!`,
+                extras: `
+                    <div style="margin-top: 1.5rem;">
+                        <h4 style="color: var(--primary-color); margin-bottom: 1rem;"><i class="fas fa-spa"></i> Yaptığım Aktiviteler:</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-leaf" style="color: green; margin-right: 0.5rem;"></i> Sunrise Yoga Sessions</li>
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-leaf" style="color: green; margin-right: 0.5rem;"></i> Traditional Balinese Massage</li>
+                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;"><i class="fas fa-leaf" style="color: green; margin-right: 0.5rem;"></i> Rice Terraces Trekking</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-leaf" style="color: green; margin-right: 0.5rem;"></i> Cooking Class</li>
+                        </ul>
+                    </div>
+                `
+            }
+        };
+        
+        function openPlaceModal(placeId) {
+            const place = placeData[placeId];
+            if (!place) return;
+            
+            document.getElementById('modalTitle').textContent = place.title;
+            document.getElementById('modalLocation').textContent = place.location;
+            document.getElementById('modalRating').textContent = place.rating;
+            document.getElementById('modalDate').textContent = place.date;
+            document.getElementById('modalImage').src = place.image;
+            document.getElementById('modalImage').alt = place.title;
+            document.getElementById('modalThoughts').textContent = place.thoughts;
+            document.getElementById('modalExtras').innerHTML = place.extras;
+            
+            document.getElementById('placeModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closePlaceModal() {
+            document.getElementById('placeModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('placeModal');
+            if (event.target === modal) {
+                closePlaceModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closePlaceModal();
+            }
+        });
+    </script>
+</body>
+</html> 
